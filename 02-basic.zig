@@ -4,7 +4,12 @@ pub fn main() void {
     std.debug.print("Hello, {s}!\n", .{"world"});
     // demo1();
     // demo2_arry();
-    demo3_string();
+    // demo3_string();
+    // demo4_error();
+    // demo5_defer() catch |err| {
+    //     std.debug.print("error: {}\n", .{err});
+    // };
+    demo6_struct();
 }
 
 fn demo1() void {
@@ -69,4 +74,60 @@ fn demo3_string() void {
         \\You better put on a happy face.
     ;
     std.debug.print("lyrics: {s}\n", .{lyrics});
+}
+
+fn demo4_error() void {
+    withdraw(101) catch |err| {
+        std.debug.print("error: {}\n", .{err});
+    };
+
+    demo4_error_2() catch |err| {
+        std.debug.print("error: {}\n", .{err});
+    };
+
+    demo4_error_3() catch |err| {
+        std.debug.print("error: {}\n", .{err});
+    };
+}
+
+fn demo4_error_2() !void { // 使用 ! 来处理错误 直接抛出错误
+    errdefer std.debug.print("errdefer\n", .{}); // 使用 errdefer 如果下面code 抛出错误 会执行这个
+    try withdraw(101); // 使用 try 来处理错误 直接抛出错误
+}
+
+const BankAccountError = error{
+    NotEnoughFunds, // 余额不足
+    InvalidAmount, // 金额无效
+};
+
+fn withdraw(amount: u32) BankAccountError!void {
+    if (amount > 100) {
+        return BankAccountError.NotEnoughFunds;
+    }
+    return;
+}
+
+fn demo4_error_3() !void {
+    var stdout = std.fs.File.stdout().writer(&.{});
+    try stdout.interface.print("Hello world!\n", .{});
+}
+
+fn demo5_defer() !void {
+    defer std.debug.print("defer\n", .{}); // 始终会执行 无论是否抛出错误
+    std.debug.print("Hello world!\n", .{});
+
+    try withdraw(111);
+}
+
+const User = struct {
+    name: []const u8,
+    age: u8,
+};
+
+fn demo6_struct() void {
+    const user = User{ .name = "John", .age = 20 };
+    std.debug.print("user: {any}\n", .{user});
+
+    const user2 = User{ .name = "Jane", .age = 21 };
+    std.debug.print("user2: {any}\n", .{user2});
 }
